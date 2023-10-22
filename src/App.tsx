@@ -1,38 +1,56 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
+import React, { useEffect, useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [piada, setPiada] = useState(null);
+  const [favoritos, setFavoritos] = useState([]);
+
+  useEffect(() => {
+    const favoritosSalvos = JSON.parse(localStorage.getItem("favoritos"));
+    if (favoritosSalvos) {
+      setFavoritos(favoritosSalvos);
+    }
+
+    fetch("https://api.chucknorris.io/jokes/random")
+      .then((resposta) => resposta.json())
+      .then((dados) => setPiada(dados.value));
+  }, []);
+
+  const curtirPiada = () => {
+    if (piada) {
+      const novosFavoritos = [...favoritos, piada];
+      setFavoritos(novosFavoritos);
+      localStorage.setItem("favoritos", JSON.stringify(novosFavoritos));
+    }
+  };
+
+  const deletarFavorito = (indice) => {
+    const confirma = window.confirm("Tem certeza que deseja excluir?");
+    if (confirma) {
+      const novosFavoritos = [...favoritos];
+      novosFavoritos.splice(indice, 1);
+      setFavoritos(novosFavoritos);
+      localStorage.setItem("favoritos", JSON.stringify(novosFavoritos));
+    }
+  };
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <h1>React + Vite</h1>
-      <h2>On CodeSandbox!</h2>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR.
-        </p>
-
-        <p>
-          Tip: you can use the inspector button next to address bar to click on
-          components in the preview and open the code in the editor!
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+    <div>
+      <h1>Piadas </h1>
+      {piada && (
+        <div>
+          <p>{piada}</p>
+          <button onClick={curtirPiada}>Curtir</button>
+        </div>
+      )}
+      <h2>Favoritos</h2>
+      <ul>
+        {favoritos.map((favorito, indice) => (
+          <li key={indice}>
+            {favorito}
+            <button onClick={() => deletarFavorito(indice)}>Excluir</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
